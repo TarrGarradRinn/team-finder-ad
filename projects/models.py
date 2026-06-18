@@ -2,6 +2,21 @@ from django.db import models
 from django.conf import settings
 
 
+class Skill(models.Model):
+    name = models.CharField(
+        max_length=124,
+        unique=True,
+        verbose_name="Название навыка"
+    )
+
+    class Meta:
+        verbose_name = 'Навык'
+        verbose_name_plural = 'Навыки'
+
+    def __str__(self):
+        return self.name
+
+
 class Project(models.Model):
 
     name = models.CharField(
@@ -41,25 +56,16 @@ class Project(models.Model):
         blank=True,
         verbose_name='Участники'
     )
+    skills = models.ManyToManyField(
+        Skill,
+        related_name='projects',
+        blank=True,
+        verbose_name='Навыки, необходимые проекту'
+    )
 
     class Meta:
         verbose_name = 'Проект'
         verbose_name_plural = 'Проекты'
-
-    def __str__(self):
-        return self.name
-
-
-class Skill(models.Model):
-    name = models.CharField(
-        max_length=124,
-        unique=True,
-        verbose_name="Название навыка"
-    )
-
-    class Meta:
-        verbose_name = 'Навык'
-        verbose_name_plural = 'Навыки'
 
     def __str__(self):
         return self.name

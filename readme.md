@@ -11,15 +11,15 @@
 
 2. **Активируйте окружение:**
 
-    - **Windows (PowerShell):**
+  - **Windows (PowerShell):**
 ```bash
       venv\Scripts\Activate.ps1
 ```
-    - **Windows (cmd):**
+  - **Windows (cmd):**
 ```bash
       venv\Scripts\activate
 ```
-    - **Linux/Mac:**
+  - **Linux/Mac:**
 ```bash
       source venv/bin/activate
 ```

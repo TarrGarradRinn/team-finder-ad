@@ -134,7 +134,7 @@
       });
       if (res.ok) {
         const skill = await res.json();
-        appendChip(skill.id, skill.name);
+        appendChip(skill.skill_id, skill.name);
       }
     }
 
@@ -149,7 +149,7 @@
       });
       if (res.ok) {
         const skill = await res.json();
-        appendChip(skill.id, skill.name);
+        appendChip(skill.skill_id, skill.name);
       }
     }
 

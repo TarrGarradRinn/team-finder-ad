@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
@@ -150,8 +152,13 @@ class AddSkill(LoginRequiredMixin, View):
         if project.owner != request.user:
             return JsonResponse({"status": "error"}, status=403)
 
-        skill_id = request.POST.get("skill_id")
-        skill_name = request.POST.get("name")
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, AttributeError):
+            data = request.POST
+
+        skill_id = data.get("skill_id")
+        skill_name = data.get("name")
 
         if not skill_id and not skill_name:
             return JsonResponse({"status": "error"}, status=400)
@@ -169,6 +176,7 @@ class AddSkill(LoginRequiredMixin, View):
 
         return JsonResponse({
             "skill_id": skill.id,
+            "name": skill.name,
             "created": created,
             "added": added,
         })

@@ -32,22 +32,21 @@ class EditProfileForm(forms.ModelForm):
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '')
+        if not phone:
+            return phone  # пустой телефон — ок
         if phone.startswith('+7'):
             normalized = '8' + phone[2:]
         else:
             normalized = phone
-
         if not re.fullmatch(r'8\d{10}', normalized):
             raise forms.ValidationError(
                 'Номер телефона должен быть в формате 8XXXXXXXXXX или +7XXXXXXXXXX'
             )
-
         qs = User.objects.filter(phone__in=[normalized, '+7' + normalized[1:]])
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
             raise forms.ValidationError('Этот номер телефона уже используется')
-
         return normalized
 
     def clean_github_url(self):

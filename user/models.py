@@ -1,4 +1,5 @@
 import random
+import uuid
 from io import BytesIO
 
 from django.db import models
@@ -94,18 +95,27 @@ class User(AbstractBaseUser, PermissionsMixin):
         size = AVATAR_SIZE
         image = Image.new('RGB', size, color)
         draw = ImageDraw.Draw(image)
-        font = ImageFont.load_default()
+
         text = self.name[0].upper()
+
+        try:
+            font = ImageFont.truetype(
+                "/usr/share/fonts/liberation/LiberationSans-Bold.ttf", size=120)
+        except OSError:
+            try:
+                font = ImageFont.truetype(
+                    "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf", size=120)
+            except OSError:
+                font = ImageFont.load_default(size=120)
+
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
-        position = ((size[0] - text_width) // 2, (size[1] - text_height) // 2)
-        draw.text(position, text, fill=AVATAR_TEXT_COLOR, font=font)
+        x = (size[0] - text_width) // 2 - bbox[0]
+        y = (size[1] - text_height) // 2 - bbox[1]
+        draw.text((x, y), text, fill=AVATAR_TEXT_COLOR, font=font)
 
         buffer = BytesIO()
         image.save(buffer, format='PNG')
-        processed_email = self.email.replace('@', '_at_').replace('.', '_dot_')
-        return ContentFile(
-            buffer.getvalue(),
-            name=f'avatar_{processed_email}.png'
-        )
+        avatar_name = f'avatar_{uuid.uuid5(uuid.NAMESPACE_DNS, self.email).hex}.png'
+        return ContentFile(buffer.getvalue(), name=avatar_name)

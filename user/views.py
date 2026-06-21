@@ -75,26 +75,29 @@ class Logout(View):
 
 class EditProfile(LoginRequiredMixin, View):
 
-    def get(self, request, user_id):
+    def get(self, request):
         form = EditProfileForm(instance=request.user)
         return render(request, 'users/edit_profile.html', {'form': form})
 
-    def post(self, request, user_id):
+    def post(self, request):
         form = EditProfileForm(
             request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            if not user.avatar:
+                user.avatar = user.generate_avatar()
+            user.save()
             return redirect(f'/users/{request.user.id}/')
         return render(request, 'users/edit_profile.html', {'form': form})
 
 
 class ChangePassword(LoginRequiredMixin, View):
 
-    def get(self, request, user_id):
+    def get(self, request):
         form = ChangePasswordForm(user=request.user)
         return render(request, 'users/change_password.html', {'form': form})
 
-    def post(self, request, user_id):
+    def post(self, request):
         form = ChangePasswordForm(user=request.user, data=request.POST)
         if form.is_valid():
             form.save()

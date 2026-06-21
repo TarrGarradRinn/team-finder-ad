@@ -1,10 +1,19 @@
 from django.db import models
 from django.conf import settings
+from .constants import (
+    MAX_LENGTH_SKILL_NAME,
+    MAX_LENGTH_PROJECT_NAME,
+    MAX_LENGTH_STATUS,
+    STATUS_OPEN,
+    STATUS_CLOSED,
+    STATUS_DEFAULT,
+    STATUS_CHOICES
+)
 
 
 class Skill(models.Model):
     name = models.CharField(
-        max_length=124,
+        max_length=MAX_LENGTH_SKILL_NAME,
         unique=True,
         verbose_name="Название навыка"
     )
@@ -20,7 +29,7 @@ class Skill(models.Model):
 class Project(models.Model):
 
     name = models.CharField(
-        max_length=200,
+        max_length=MAX_LENGTH_PROJECT_NAME,
         verbose_name="Название",
     )
     description = models.TextField(
@@ -29,6 +38,7 @@ class Project(models.Model):
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        related_name='owned_projects',
         on_delete=models.CASCADE,
         verbose_name="Владелец"
     )
@@ -42,12 +52,9 @@ class Project(models.Model):
         verbose_name="Ссылка на GitHub"
     )
     status = models.CharField(
-        max_length=6,
-        choices=[
-            ("open", "Open"),
-            ("closed", "Closed"),
-        ],
-        default="open",
+        max_length=MAX_LENGTH_STATUS,
+        choices=STATUS_CHOICES,
+        default=STATUS_DEFAULT,
         verbose_name="Статус"
     )
     participants = models.ManyToManyField(

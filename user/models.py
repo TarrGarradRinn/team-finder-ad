@@ -9,6 +9,15 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from .constants import (
+    AVATAR_COLORS,
+    AVATAR_SIZE,
+    AVATAR_TEXT_COLOR,
+    MAX_LENGTH_ABOUT,
+    MAX_LENGTH_NAME,
+    MAX_LENGTH_PHONE,
+    MAX_LENGTH_SURNAME,
+)
 
 
 class UserManager(BaseUserManager):
@@ -30,48 +39,32 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
 
-    AVATAR_COLORS = [
-        (255, 107, 107),
-        (78, 205, 196),
-        (69, 183, 209),
-        (150, 206, 180),
-        (255, 234, 167),
-        (221, 160, 221),
-        (255, 138, 92),
-        (162, 155, 254),
-        (253, 121, 168),
-        (0, 206, 201),
-        (253, 203, 110),
-        (108, 92, 231),
-        (0, 184, 148),
-        (225, 112, 85),
-        (9, 132, 227),
-    ]
-
     email = models.EmailField(
         unique=True,
         verbose_name="Почта"
     )
     name = models.CharField(
-        max_length=124,
+        max_length=MAX_LENGTH_NAME,
         verbose_name="Имя",
     )
     surname = models.CharField(
-        max_length=124,
+        max_length=MAX_LENGTH_SURNAME,
         verbose_name="Фамилия",
     )
     avatar = models.ImageField(
+        blank=True,
         upload_to='avatars/',
         verbose_name='Аватар')
     phone = models.CharField(
-        max_length=12,
+        blank=True,
+        max_length=MAX_LENGTH_PHONE,
         verbose_name='Телефон')
     github_url = models.URLField(
         blank=True,
         null=True,
         verbose_name='Ссылка на GitHub')
     about = models.TextField(
-        max_length=256,
+        max_length=MAX_LENGTH_ABOUT,
         blank=True,
         verbose_name='О себе')
     is_active = models.BooleanField(default=True)
@@ -90,12 +83,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if not self.pk and not self.avatar:
-            self.avatar = self.generate_avatar()
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
+            avatar_file = self.generate_avatar()
+            self.avatar.save(avatar_file.name, avatar_file, save=True)
+        else:
+            super().save(*args, **kwargs)
 
     def generate_avatar(self):
-        color = random.choice(self.AVATAR_COLORS)
-        size = (200, 200)
+        color = random.choice(AVATAR_COLORS)
+        size = AVATAR_SIZE
         image = Image.new('RGB', size, color)
         draw = ImageDraw.Draw(image)
         font = ImageFont.load_default()
@@ -104,7 +100,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
         position = ((size[0] - text_width) // 2, (size[1] - text_height) // 2)
-        draw.text(position, text, fill=(255, 255, 255), font=font)
+        draw.text(position, text, fill=AVATAR_TEXT_COLOR, font=font)
 
         buffer = BytesIO()
         image.save(buffer, format='PNG')

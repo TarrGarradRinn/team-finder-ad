@@ -1,13 +1,9 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
+
 from .constants import (
-    MAX_LENGTH_SKILL_NAME,
-    MAX_LENGTH_PROJECT_NAME,
-    MAX_LENGTH_STATUS,
-    STATUS_OPEN,
-    STATUS_CLOSED,
+    MAX_LENGTH_PROJECT_NAME, MAX_LENGTH_SKILL_NAME, MAX_LENGTH_STATUS, STATUS_CHOICES,
     STATUS_DEFAULT,
-    STATUS_CHOICES
 )
 
 

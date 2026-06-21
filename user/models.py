@@ -2,22 +2,14 @@ import random
 import uuid
 from io import BytesIO
 
-from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.files.base import ContentFile
+from django.db import models
 from PIL import Image, ImageDraw, ImageFont
-from django.contrib.auth.models import (
-    AbstractBaseUser,
-    BaseUserManager,
-    PermissionsMixin,
-)
+
 from .constants import (
-    AVATAR_COLORS,
-    AVATAR_SIZE,
-    AVATAR_TEXT_COLOR,
-    MAX_LENGTH_ABOUT,
-    MAX_LENGTH_NAME,
-    MAX_LENGTH_PHONE,
-    MAX_LENGTH_SURNAME,
+    AVATAR_COLORS, AVATAR_SIZE, AVATAR_TEXT_COLOR, MAX_LENGTH_ABOUT, MAX_LENGTH_NAME,
+    MAX_LENGTH_PHONE, MAX_LENGTH_SURNAME,
 )
 
 

@@ -1,14 +1,13 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views import View
-from django.views.generic import ListView, DetailView
-from django.contrib.auth import (authenticate,
-                                 login,
-                                 logout,
-                                 update_session_auth_hash)
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import User
-from .forms import RegisterForm, LoginForm, EditProfileForm, ChangePasswordForm
+from django.shortcuts import redirect, render
+from django.views import View
+from django.views.generic import DetailView, ListView
+
 from team_finder.constants import PAGINATE_BY
+
+from .forms import ChangePasswordForm, EditProfileForm, LoginForm, RegisterForm
+from .models import User
 
 
 class UserList(ListView):

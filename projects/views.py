@@ -1,20 +1,15 @@
 import json
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views import View
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
+
+from team_finder.constants import PAGINATE_BY
+
+from .constants import STATUS_CLOSED, STATUS_OPEN
 from .models import Project, Skill
-
-
-from team_finder.constants import (
-    PAGINATE_BY
-)
-from .constants import (
-    STATUS_OPEN,
-    STATUS_CLOSED,
-)
 
 
 class List(ListView):

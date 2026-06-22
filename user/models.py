@@ -2,32 +2,16 @@ import random
 import uuid
 from io import BytesIO
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.files.base import ContentFile
 from django.db import models
 from PIL import Image, ImageDraw, ImageFont
 
 from .constants import (
-    AVATAR_COLORS, AVATAR_SIZE, AVATAR_TEXT_COLOR, MAX_LENGTH_ABOUT, MAX_LENGTH_NAME,
-    MAX_LENGTH_PHONE, MAX_LENGTH_SURNAME,
+    AVATAR_COLORS, AVATAR_FONT_PATHS, AVATAR_FONT_RATIO, AVATAR_SIZE, AVATAR_TEXT_COLOR,
+    MAX_LENGTH_ABOUT, MAX_LENGTH_NAME, MAX_LENGTH_PHONE, MAX_LENGTH_SURNAME,
 )
-
-
-class UserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError('Email must be set')
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, password, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
-        return self.create_user(email, password, **extra_fields)
+from .managers import UserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -87,18 +71,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         size = AVATAR_SIZE
         image = Image.new('RGB', size, color)
         draw = ImageDraw.Draw(image)
+        font_size = int(min(size) * AVATAR_FONT_RATIO)
 
         text = self.name[0].upper()
 
-        try:
-            font = ImageFont.truetype(
-                "/usr/share/fonts/liberation/LiberationSans-Bold.ttf", size=120)
-        except OSError:
+        for font_path in AVATAR_FONT_PATHS:
             try:
-                font = ImageFont.truetype(
-                    "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf", size=120)
+                font = ImageFont.truetype(font_path, size=font_size)
+                break
             except OSError:
-                font = ImageFont.load_default(size=120)
+                font = ImageFont.load_default(size=font_size)
 
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]

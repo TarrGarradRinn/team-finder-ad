@@ -6,9 +6,9 @@ app_name = 'projects'
 
 urlpatterns = [
     # pages
-    path('list/', views.List.as_view(), name='project_list'),
+    path('list/', views.List.as_view(), name='list'),
     path('create-project/', views.Create.as_view(), name='create_project'),
-    path('<int:project_id>/', views.Detail.as_view(), name='project_detail'),
+    path('<int:project_id>/', views.Detail.as_view(), name='detail'),
     path('<int:project_id>/edit/', views.Edit.as_view(), name='edit_project'),
 
     # api

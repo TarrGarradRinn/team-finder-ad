@@ -9,3 +9,5 @@ STATUS_CHOICES = [
     (STATUS_OPEN, 'Открыт'),
     (STATUS_CLOSED, 'Закрыт'),
 ]
+
+AUTOCOMPLETE_LIMIT = 10

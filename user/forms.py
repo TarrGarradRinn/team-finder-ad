@@ -3,6 +3,8 @@ import re
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 
+from team_finder.forms_mixins import GitHubURLValidationMixin
+
 from .models import User
 
 
@@ -26,7 +28,7 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
 
-class EditProfileForm(forms.ModelForm):
+class EditProfileForm(GitHubURLValidationMixin, forms.ModelForm):
 
     class Meta:
         model = User
@@ -35,7 +37,7 @@ class EditProfileForm(forms.ModelForm):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '')
         if not phone:
-            return phone  # пустой телефон — ок
+            return phone
         if phone.startswith('+7'):
             normalized = '8' + phone[2:]
         else:
@@ -50,12 +52,6 @@ class EditProfileForm(forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError('Этот номер телефона уже используется')
         return normalized
-
-    def clean_github_url(self):
-        url = self.cleaned_data.get('github_url', '')
-        if url and 'github.com' not in url:
-            raise forms.ValidationError('Ссылка должна вести на github.com')
-        return url
 
 
 class ChangePasswordForm(PasswordChangeForm):

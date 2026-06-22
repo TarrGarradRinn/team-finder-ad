@@ -1,24 +1,48 @@
+RED = (255, 107, 107)
+TURQUOISE = (78, 205, 196)
+BLUE = (69, 183, 209)
+GREEN = (150, 206, 180)
+YELLOW = (255, 234, 167)
+PURPLE = (221, 160, 221)
+ORANGE = (255, 138, 92)
+VIOLET = (162, 155, 254)
+PINK = (253, 121, 168)
+CYAN = (0, 206, 201)
+GOLD = (253, 203, 110)
+DEEP_PURPLE = (108, 92, 231)
+MINT = (0, 184, 148)
+CORAL = (225, 112, 85)
+LIGHT_BLUE = (9, 132, 227)
+WHITE = (255, 255, 255)
+
 AVATAR_COLORS = [
-    (255, 107, 107),
-    (78, 205, 196),
-    (69, 183, 209),
-    (150, 206, 180),
-    (255, 234, 167),
-    (221, 160, 221),
-    (255, 138, 92),
-    (162, 155, 254),
-    (253, 121, 168),
-    (0, 206, 201),
-    (253, 203, 110),
-    (108, 92, 231),
-    (0, 184, 148),
-    (225, 112, 85),
-    (9, 132, 227),
+    RED,
+    TURQUOISE,
+    BLUE,
+    GREEN,
+    YELLOW,
+    PURPLE,
+    ORANGE,
+    VIOLET,
+    PINK,
+    CYAN,
+    GOLD,
+    DEEP_PURPLE,
+    MINT,
+    CORAL,
+    LIGHT_BLUE,
 ]
+
 AVATAR_SIZE = (200, 200)
-AVATAR_TEXT_COLOR = (255, 255, 255)
+AVATAR_TEXT_COLOR = WHITE
 
 MAX_LENGTH_NAME = 124
 MAX_LENGTH_SURNAME = 124
 MAX_LENGTH_PHONE = 12
 MAX_LENGTH_ABOUT = 256
+
+AVATAR_FONT_RATIO = 0.6
+AVATAR_FONT_PATHS = (
+    "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+)

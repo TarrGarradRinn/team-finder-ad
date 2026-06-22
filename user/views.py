@@ -38,7 +38,7 @@ class Register(View):
         form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('/users/login/')
+            return redirect('users:login')
         return render(request, 'users/register.html', {'form': form})
 
 
@@ -59,7 +59,7 @@ class Login(View):
             )
             if user:
                 login(request, user)
-                return redirect('/projects/list/')
+                return redirect('projects:list')
             form.add_error(None, 'Неверный email или пароль')
         return render(request, 'users/login.html', {'form': form})
 
@@ -69,7 +69,7 @@ class Logout(View):
 
     def get(self, request):
         logout(request)
-        return redirect('/projects/list/')
+        return redirect('projects:list')
 
 
 class EditProfile(LoginRequiredMixin, View):
@@ -86,7 +86,7 @@ class EditProfile(LoginRequiredMixin, View):
             if not user.avatar:
                 user.avatar = user.generate_avatar()
             user.save()
-            return redirect(f'/users/{request.user.id}/')
+            return redirect('users:detail')
         return render(request, 'users/edit_profile.html', {'form': form})
 
 
@@ -101,5 +101,5 @@ class ChangePassword(LoginRequiredMixin, View):
         if form.is_valid():
             form.save()
             update_session_auth_hash(request, request.user)
-            return redirect(f'/users/{request.user.id}/')
+            return redirect('users:detail')
         return render(request, 'users/change_password.html', {'form': form})

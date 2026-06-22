@@ -1,14 +1,17 @@
 import json
+from http import HTTPStatus
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from team_finder.constants import PAGINATE_BY
 
-from .constants import STATUS_CLOSED, STATUS_OPEN
+from .constants import AUTOCOMPLETE_LIMIT, STATUS_CLOSED, STATUS_OPEN
+from .forms import ProjectForm
 from .models import Project, Skill
 
 
@@ -22,7 +25,12 @@ class List(ListView):
     paginate_by = PAGINATE_BY
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = (
+            super()
+            .get_queryset()
+            .select_related("owner")
+            .prefetch_related("participants", "skills")
+        )
         skill = self.request.GET.get("skill")
         if skill:
             queryset = queryset.filter(skills__name=skill)
@@ -49,7 +57,7 @@ class Create(LoginRequiredMixin, CreateView):
     """Создание проекта"""
 
     model = Project
-    fields = ["name", "description", "github_url", "status"]
+    form_class = ProjectForm
     template_name = "projects/create-project.html"
 
     def get_context_data(self, **kwargs):
@@ -64,22 +72,29 @@ class Create(LoginRequiredMixin, CreateView):
         return response
 
     def get_success_url(self):
-        return f"/projects/{self.object.id}/"
+        return reverse("projects:detail", kwargs={"project_id": self.object.id})
 
 
-class Edit(LoginRequiredMixin, UpdateView):
+class OwnerRequiredMixin:
+
+    def dispatch(self, request, *args, **kwargs):
+        project = get_object_or_404(Project, id=kwargs["project_id"])
+
+        if project.owner != request.user:
+            return redirect(
+                reverse("projects:detail", kwargs={"project_id": project.id})
+            )
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class Edit(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
     """Редактирование проекта"""
 
     model = Project
-    fields = ["name", "description", "github_url", "status"]
+    form_class = ProjectForm
     template_name = "projects/create-project.html"
     pk_url_kwarg = "project_id"
-
-    def dispatch(self, request, *args, **kwargs):
-        project = get_object_or_404(Project, id=kwargs['project_id'])
-        if project.owner != request.user:
-            return redirect(f"/projects/{project.id}/")
-        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -87,7 +102,7 @@ class Edit(LoginRequiredMixin, UpdateView):
         return context
 
     def get_success_url(self):
-        return f"/projects/{self.object.id}/"
+        return reverse("projects:detail", kwargs={"project_id": self.object.id})
 
 
 class ToggleParticipation(LoginRequiredMixin, View):
@@ -95,13 +110,14 @@ class ToggleParticipation(LoginRequiredMixin, View):
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
-        if request.user in project.participants.all():
+        is_participant = project.participants.filter(id=request.user.id).exists()
+
+        if is_participant:
             project.participants.remove(request.user)
-            is_participant = False
         else:
             project.participants.add(request.user)
-            is_participant = True
-        return JsonResponse({"status": "ok", "is_participant": is_participant})
+
+        return JsonResponse({"status": "ok", "is_participant": not is_participant})
 
 
 class Complete(LoginRequiredMixin, View):
@@ -113,13 +129,13 @@ class Complete(LoginRequiredMixin, View):
         if project.owner != request.user:
             return JsonResponse(
                 {"status": "error", "message": "Не автор проекта"},
-                status=403
+                status=HTTPStatus.FORBIDDEN
             )
 
         if project.status != STATUS_OPEN:
             return JsonResponse(
                 {"status": "error", "message": "Проект уже завершен"},
-                status=400
+                status=HTTPStatus.BAD_REQUEST
             )
 
         project.status = STATUS_CLOSED
@@ -133,7 +149,7 @@ class SkillsAutocomplete(View):
     def get(self, request):
         q = request.GET.get("q", "")
         skills = Skill.objects.filter(name__istartswith=q).order_by("name")[
-            :10] if q else Skill.objects.none()
+            :AUTOCOMPLETE_LIMIT] if q else Skill.objects.none()
         data = [{"id": skill.id, "name": skill.name} for skill in skills]
         return JsonResponse(data, safe=False)
 
@@ -145,7 +161,7 @@ class AddSkill(LoginRequiredMixin, View):
         project = get_object_or_404(Project, id=project_id)
 
         if project.owner != request.user:
-            return JsonResponse({"status": "error"}, status=403)
+            return JsonResponse({"status": "error"}, status=HTTPStatus.FORBIDDEN)
 
         try:
             data = json.loads(request.body)
@@ -156,7 +172,7 @@ class AddSkill(LoginRequiredMixin, View):
         skill_name = data.get("name")
 
         if not skill_id and not skill_name:
-            return JsonResponse({"status": "error"}, status=400)
+            return JsonResponse({"status": "error"}, status=HTTPStatus.BAD_REQUEST)
 
         if skill_id:
             skill = get_object_or_404(Skill, id=skill_id)
@@ -165,7 +181,7 @@ class AddSkill(LoginRequiredMixin, View):
             skill, created = Skill.objects.get_or_create(name=skill_name)
 
         added = False
-        if skill not in project.skills.all():
+        if not project.skills.filter(id=skill.id).exists():
             project.skills.add(skill)
             added = True
 
@@ -184,11 +200,11 @@ class RemoveSkill(LoginRequiredMixin, View):
         project = get_object_or_404(Project, id=project_id)
 
         if project.owner != request.user:
-            return JsonResponse({"status": "error"}, status=403)
+            return JsonResponse({"status": "error"}, status=HTTPStatus.FORBIDDEN)
 
         skill = get_object_or_404(Skill, id=skill_id)
 
-        if skill in project.skills.all():
+        if project.skills.filter(id=skill.id).exists():
             project.skills.remove(skill)
 
         return JsonResponse({"status": "ok"})

@@ -10,7 +10,7 @@ from .forms import ChangePasswordForm, EditProfileForm, LoginForm, RegisterForm
 from .models import User
 
 
-class UserList(ListView):
+class List(ListView):
     """Список всех пользователей"""
     model = User
     template_name = 'users/participants.html'
@@ -19,7 +19,7 @@ class UserList(ListView):
     paginate_by = PAGINATE_BY
 
 
-class UserDetail(DetailView):
+class Detail(DetailView):
     """Страница пользователя"""
     model = User
     template_name = 'users/user-details.html'
